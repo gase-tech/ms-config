@@ -1,0 +1,114 @@
+spring:
+  application:
+    name: customer-service
+  datasource:
+    hikari:
+      connection-timeout: 60000
+      maximum-pool-size: 5
+    dbcp2:
+      test-while-idle: true
+      validationQuery: SELECT 1
+      timeBetweenEvictionRunsMillis: 60000
+    initialization-mode: always
+    tomcat:
+      max-wait: 15000
+      max-active: 50
+      test-on-borrow: true
+  jpa:
+    properties:
+      connection.characterEncoding: utf-8
+      connection.CharSet: utf-8
+      connection.useUnicode: true
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+  cloud:
+    stream:
+      bindings:
+        documentation-output-channel:
+          destination: ${kafka.topic.documentation}
+        log-output-channel:
+          destination: ${kafka.topic.log}
+    consul:
+      discovery:
+        tags:
+          - Spring Boot
+          - Resource Server
+          - Mysql
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+
+server:
+  port: 9070
+  servlet:
+    session:
+      cookie:
+        http-only: true
+
+logging:
+  file: log/customer-service.log
+
+---
+
+spring:
+  profiles: dev
+  datasource:
+    url: ${jdbc.customer.url:${jdbc.url:jdbc:mysql://localhost:3306/ms-template?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC}}
+    username: ${jdbc.customer.username:${jdbc.username:root}}
+    password: ${jdbc.customer.password:${jdbc.password:admin}}
+  cloud:
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+---
+
+spring:
+  profiles: test
+  datasource:
+    url: ${jdbc.customer.url:${jdbc.url:jdbc:mysql://localhost:3306/ms-template?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC}}
+    username: ${jdbc.customer.username:${jdbc.username:root}}
+    password: ${jdbc.customer.password:${jdbc.password:admin}}
+  cloud:
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+---
+
+spring:
+  profiles: prod
+  datasource:
+    url: ${jdbc.customer.url:${jdbc.url:jdbc:mysql://mysql:3306/ms-template?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC}}
+    username: ${jdbc.customer.username:${jdbc.username:root}}
+    password: ${jdbc.customer.password:${jdbc.password:admin}}
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers:
+            - kafka:9092
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+

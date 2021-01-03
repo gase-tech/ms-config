@@ -1,0 +1,60 @@
+kafka:
+  topic:
+    log: log
+    documentation: documentation
+    email: email
+    delete-category: delete-category
+
+management:
+  endpoint:
+    routes:
+      enabled: true
+    health:
+      enabled: true
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 160000000
+        readTimeout: 160000000
+
+server:
+  error:
+    include-message: always
+
+logging:
+  level:
+    com.netflix.discovery.shared.resolver.aws: OFF
+    org.springframework.cloud.config.client.ConfigServicePropertySourceLocator: ERROR
+    org.apache.kafka.common: ERROR
+    com.netflix: ERROR
+    org.apache.kafka.clients: ERROR
+    org.springframework.context.support: ERROR
+    org.springframework.data.repository.config: ERROR
+    org.springframework.integration.monitor: ERROR
+    org.springframework.cloud.stream.messaging: ERROR
+    org.springframework.cloud.stream.binder: ERROR
+    springfox.documentation.spring.web.readers.operation: ERROR
+    org.springframework.cloud.config.server: ERROR
+    org.springframework.boot.autoconfigure.security: ERROR
+    org.springframework.integration.kafka.inbound: ERROR
+
+---
+
+spring:
+  profiles: dev
+  zipkin:
+    enabled: false
+
+---
+
+spring:
+  profiles: prod
+  zipkin:
+    baseUrl: http://zipkin:9411/

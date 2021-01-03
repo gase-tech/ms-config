@@ -1,0 +1,99 @@
+spring:
+  application:
+    name: logger-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+  cloud:
+    stream:
+      bindings:
+        documentation-output-channel:
+          destination: ${kafka.topic.documentation}
+        log-input-channel:
+          destination: ${kafka.topic.log}
+
+server:
+  port: 9090
+  servlet:
+    session:
+      cookie:
+        http-only: true
+
+logging:
+  file: log/logger-service.log
+
+---
+
+spring:
+  profiles: dev
+  data:
+    mongodb:
+      uri: ${mongodb.logger.uri:${mongodb.uri:mongodb://localhost:27017}}
+      database: ms-template-logger-service
+  cloud:
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+elasticsearch:
+  host: localhost
+  port: 9300
+
+---
+
+spring:
+  profiles: test
+  data:
+    mongodb:
+      uri: ${mongodb.logger.uri:${mongodb.uri:mongodb://localhost:27017}}
+      database: ms-template-logger-service
+  cloud:
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+elasticsearch:
+  host: localhost
+  port: 9300
+
+---
+
+spring:
+  profiles: prod
+  data:
+    mongodb:
+      uri: ${mongodb.logger.uri:${mongodb.uri:mongodb://mongodb:27017}}
+      database: ms-template-logger-service
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers:
+            - kafka:9092
+    cloud:
+      consul:
+        host: localhost
+        port: 8500
+        discovery:
+          instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+          preferIpAddress: false
+          tags:
+            - Spring Boot
+            - Async Logging with Event Bus
+            - Mongo
+
+elasticsearch:
+  host: elasticsearch
+  port: 9200

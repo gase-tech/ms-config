@@ -1,0 +1,86 @@
+server:
+  port: 9060
+spring:
+  application:
+    name: api-gateway
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  cloud:
+    consul:
+      discovery:
+        tags:
+          - Spring Cloud
+          - API Gateway
+          - Zuul
+          - Security
+ribbon:
+  ReadTimeout: 60000
+
+hystrix:
+  command:
+    default:
+      execution:
+        timeout:
+          enabled: false
+
+zuul:
+  semaphore:
+    max-semaphores: 5000
+  ignoredServices: consul
+
+logging:
+  file: log/api-gateway.log
+  level:
+    root: INFO
+
+---
+
+spring:
+  profiles: dev
+  cloud:
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+---
+
+spring:
+  profiles: test
+  cloud:
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+---
+
+spring:
+  profiles: prod
+  cloud:
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+

@@ -1,0 +1,89 @@
+server:
+  port: 9040
+spring:
+  application:
+    name: api-documentation
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+  cloud:
+    stream:
+      bindings:
+        documentation-input-channel:
+          destination: ${kafka.topic.documentation}
+    consul:
+      discovery:
+        tags:
+          - Microservices REST documentation
+          - SWAGGER
+          - Communication with Event Bus
+          - Spring Boot
+swagger:
+  config:
+    refreshrate: 5000
+
+logging:
+  file: log/api-documentation.log
+
+docs:
+  default-swagger-path: /v2/api-docs
+  key-swagger-url: swagger_url
+  ignored-services:
+    - config-server
+    - api-documentation
+    - api-gateway
+    - admin-panel
+    - consul
+
+---
+
+spring:
+  profiles: dev
+
+cloud:
+  consul:
+    config:
+      enable: false
+    host: localhost
+    port: 8500
+    discovery:
+      instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+      preferIpAddress: false
+
+---
+
+spring:
+  profiles: test
+  cloud:
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+---
+
+spring:
+  profiles: prod
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers:
+            - kafka:9092
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+

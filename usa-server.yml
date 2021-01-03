@@ -1,0 +1,79 @@
+spring:
+  application:
+    name: uaa-server
+  cloud:
+    stream:
+      bindings:
+        documentation-output-channel:
+          destination: ${kafka.topic.documentation}
+    consul:
+      discovery:
+        tags:
+          - Spring Boot
+          - Auth Server
+          - JWT
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+server:
+  port: 7000
+  servlet:
+    session:
+      cookie:
+        http-only: true
+
+token:
+  secret: takmaduzelirbekanka
+  life-to-minute: 180
+
+logging:
+  file: log/uaa-server.log
+
+---
+
+spring:
+  profiles: dev
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+---
+
+spring:
+  profiles: test
+  cloud:
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
+
+---
+
+spring:
+  profiles: prod
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers:
+            - kafka:9092
+    consul:
+      config:
+        enable: false
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+        preferIpAddress: false
